@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dapur Doa Umi x Risoles Hyra</title>
+    
+    <link rel="icon" type="image/png" href="https://iili.io/F4F7FRa.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="main-content">
+            <div class="top-bar">
+                <div class="top-bar-icon" id="admin-icon-container"></div>
+                <div class="top-bar-icon" id="theme-toggle"></div>
+            </div>
+            <header class="store-header" id="store-header"></header>
+            
+            <div id="notification-bar" class="notification-bar">
+                <div id="notification-slider" class="notification-slider"></div>
+                <div id="notif-counter" class="notif-counter"></div>
+                <div id="notif-controls" class="notif-controls">
+                    <button id="notif-prev" class="notif-nav">&lt;</button>
+                    <button id="notif-next" class="notif-nav">&gt;</button>
+                </div>
+            </div>
+            
+            <div id="category-wrapper">
+                <section class="category-section">
+                    <div class="category-icons" id="category-icons-container"></div>
+                </section>
+            </div>
+            
+            <section class="products-section">
+                <div id="product-list"></div>
+            </section>
+        </div>
+        
+        <div id="admin-page"></div>
+    </div>
+    
+    <nav class="bottom-nav">
+        <div class="nav-item" id="home-btn">
+            <div class="icon"></div>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" id="cart-btn">
+            <div class="icon"></div>
+            <div class="cart-badge" id="cart-badge">0</div>
+            <span>Keranjang</span>
+        </div>
+        <div class="nav-item" id="notif-btn">
+            <div class="icon"></div>
+            <span>Info</span>
+        </div>
+    </nav>
+    
+    <div id="toast"></div>
+
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <img id="modal-product-image" class="modal-product-image" src="" alt="Gambar Produk">
+            <h3 id="modal-product-name">Nama Produk</h3>
+            <div id="modal-product-variants" class="form-group">
+                <label for="variant-select">Pilih Variasi:</label>
+                <select id="variant-select"></select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" id="close-modal-btn">Tutup</button>
+                <button class="btn-primary" id="add-to-cart-btn">Tambah ke Keranjang</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <h3>Keranjang Anda</h3>
+            <div id="cart-items-list"></div>
+            <hr>
+            <h4>Total: <span id="cart-total">Rp 0</span></h4>
+            <textarea id="cart-notes" class="form-group" placeholder="Tulis catatan..."></textarea>
+            <div class="modal-buttons">
+                <button class="btn-secondary" id="close-cart-btn">Tutup</button>
+                <button class="btn-primary" id="order-whatsapp-btn">Pesan via WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification-modal" class="modal">
+        <div class="modal-content">
+            <h3>Informasi</h3>
+            <div id="notification-content"></div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" id="close-notif-btn">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-form-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="admin-form-title">Form</h3>
+            <div id="admin-form-content"></div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" id="admin-form-close-btn">Batal</button>
+                <button class="btn-primary" id="admin-form-save-btn">Simpan</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Dapur Doa Umi x Risoles Hyra</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
