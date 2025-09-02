@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PENGATURAN APLIKASI ---
     // ===================================================================
     const CONFIG = {
-        ADMIN_PASSWORD: 'hyra', 
+        ADMIN_PASSWORD: 'hh', 
         HEADER_IMAGE_URL: 'https://i.postimg.cc/gJFgD3Gd/Whats-App-Image-2025-07-30-at-04-29-34.jpg',
         WHATSAPP_NUMBER: '6285161231424',
         // --- PENTING: Ganti URL gambar QRIS di bawah ini dengan URL gambar QRIS Anda ---
@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================
 
     let allProducts = [], allCategories = [], notifications = [], cart = [], currentProduct = null, allHistory = [];
+    let lastOrderForProof = null; // Variabel untuk menyimpan pesanan terakhir
     const mainContent = document.getElementById('main-content');
     const adminPage = document.getElementById('admin-page');
     const productList = document.getElementById('product-list');
@@ -171,49 +172,63 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCartQuantity(i, c) { if (cart[i]) { cart[i].qty += c; if (cart[i].qty <= 0) { cart.splice(i, 1); } updateCartUI(); } }
     function sendOrder() { if (cart.length === 0) return; const t = cart.reduce((s, i) => s + i.harga * i.qty, 0); const n = document.getElementById('cart-notes').value; let m = `Hallo Dapur Doa Umi x Risoles Hyra, Saya Mau Pesan:\n\n`; cart.forEach(i => { m += `*${i.nama}* ${i.variasi ? `(${i.variasi})` : ''}\n- Jumlah: ${i.qty} x Rp ${i.harga.toLocaleString('id-ID')}\n\n`; }); m += `*Total Pembayaran: Rp ${t.toLocaleString('id-ID')}*\n`; if (n) m += `*Catatan:* ${n}`; const u = `https://api.whatsapp.com/send?phone=${CONFIG.WHATSAPP_NUMBER}&text=${encodeURIComponent(m)}`; window.open(u, '_blank'); const d = { items: [...cart], catatan: n }; cart = []; document.getElementById('cart-notes').value = ''; updateCartUI(); document.getElementById('cart-modal').style.display = 'none'; fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaction', data: d }) }); }
     
-    // --- FUNGSI YANG DIPERBARUI ---
+    // --- FUNGSI PEMBAYARAN QRIS & BUKTI TRANSFER ---
     function showQrisModal() {
         if (cart.length === 0) return;
 
         const totalAmount = cart.reduce((sum, item) => sum + item.harga * item.qty, 0);
         const originalNotes = document.getElementById('cart-notes').value;
 
-        // 1. Buat catatan khusus untuk spreadsheet
-        const spreadsheetNotes = `Pembayaran via QRIS. Catatan Pembeli: ${originalNotes || '-'}`;
+        // --- BLOK WHATSAPP NOTIFIKASI PENJUAL DIHAPUS ---
 
-        // 2. Siapkan pesan WhatsApp untuk notifikasi ke penjual
-        let waMessage = `🔔 *Notifikasi Pesanan Baru (via QRIS)* 🔔\n\nPelanggan telah membuat pesanan untuk dibayar dengan QRIS:\n\n`;
-        cart.forEach(item => {
-            waMessage += `*${item.nama}* ${item.variasi ? `(${item.variasi})` : ''}\n- Jumlah: ${item.qty} x Rp ${item.harga.toLocaleString('id-ID')}\n\n`;
-        });
-        waMessage += `*Total Pembayaran: Rp ${totalAmount.toLocaleString('id-ID')}*\n`;
-        if (originalNotes) {
-            waMessage += `*Catatan Pelanggan:* ${originalNotes}`;
-        }
-        const waUrl = `https://api.whatsapp.com/send?phone=${CONFIG.WHATSAPP_NUMBER}&text=${encodeURIComponent(waMessage)}`;
-
-        // 3. Kirim notifikasi WhatsApp di latar belakang
-        window.open(waUrl, '_blank');
-
-        // 4. Tampilkan modal QRIS kepada pelanggan
+        // Tampilkan modal QRIS
         document.getElementById('qris-image').src = CONFIG.QRIS_IMAGE_URL;
         document.getElementById('qris-total').textContent = `Rp ${totalAmount.toLocaleString('id-ID')}`;
         document.getElementById('qris-modal').style.display = 'flex';
         
-        // 5. Kirim data ke spreadsheet dengan catatan yang sudah dimodifikasi
+        // Simpan data transaksi ke spreadsheet
+        const spreadsheetNotes = `Pembayaran via QRIS. Catatan Pembeli: ${originalNotes || '-'}`;
         const transactionData = { items: [...cart], catatan: spreadsheetNotes };
         fetch(CONFIG.SCRIPT_URL, { 
             method: 'POST', 
             body: JSON.stringify({ action: 'saveTransaction', data: transactionData }) 
         });
 
-        // 6. Kosongkan keranjang dan tutup modal keranjang
+        // Simpan detail pesanan untuk dikirim sebagai bukti transfer, LALU kosongkan keranjang
+        lastOrderForProof = {
+            items: [...cart],
+            notes: originalNotes,
+            total: totalAmount
+        };
         cart = [];
         document.getElementById('cart-notes').value = '';
         updateCartUI();
         document.getElementById('cart-modal').style.display = 'none';
     }
-    // --- AKHIR FUNGSI YANG DIPERBARUI ---
+
+    function sendTransferProof() {
+        if (!lastOrderForProof || lastOrderForProof.items.length === 0) {
+            alert("Tidak ada data pesanan terakhir untuk dikirim. Silakan lakukan pemesanan terlebih dahulu.");
+            return;
+        }
+
+        const { items, notes, total } = lastOrderForProof;
+
+        let message = `Halo, saya ingin konfirmasi pembayaran dan mengirimkan bukti transfer untuk pesanan berikut:\n\n`;
+        items.forEach(item => {
+            message += `*${item.nama}* ${item.variasi ? `(${item.variasi})` : ''}\n`;
+            message += `- Jumlah: ${item.qty} x Rp ${item.harga.toLocaleString('id-ID')}\n\n`;
+        });
+        message += `*Total Pembayaran: Rp ${total.toLocaleString('id-ID')}*\n`;
+        if (notes) {
+            message += `*Catatan:* ${notes}\n`;
+        }
+        message += `\nMohon dicek kembali. Terima kasih.`;
+
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${CONFIG.WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+    }
+    // --- AKHIR FUNGSI ---
 
     function addProductToCart(product) { if (!product) return; const existingItem = cart.find(item => item.nama === product.Nama && !item.variasi); if (existingItem) { existingItem.qty++; } else { cart.push({ nama: product.Nama, harga: Number(product.Harga), gambar: product.Gambar, kategori: product.Kategori, variasi: '', qty: 1 }); } updateCartUI(); }
     function triggerFlyToCartAnimation(startElement) { const cartBtn = document.getElementById('cart-btn'); const endRect = cartBtn.getBoundingClientRect(); const startRect = startElement.getBoundingClientRect(); const flyEl = document.createElement('div'); flyEl.className = 'fly-to-cart-element'; document.body.appendChild(flyEl); flyEl.style.left = `${startRect.left + startRect.width / 2}px`; flyEl.style.top = `${startRect.top + startRect.height / 2}px`; const endX = endRect.left + endRect.width / 2 - startRect.left - startRect.width / 2; const endY = endRect.top + endRect.height / 2 - startRect.top - startRect.height / 2; flyEl.style.setProperty('--cart-end-x', `${endX}px`); flyEl.style.setProperty('--cart-end-y', `${endY}px`); flyEl.addEventListener('animationend', () => { flyEl.remove(); }); }
@@ -243,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-to-cart-btn').addEventListener('click', handleAddToCart);
     document.getElementById('order-whatsapp-btn').addEventListener('click', sendOrder);
     document.getElementById('order-qris-btn').addEventListener('click', showQrisModal);
+    document.getElementById('send-proof-btn').addEventListener('click', sendTransferProof); // Listener untuk tombol baru
     document.getElementById('cart-items-list').addEventListener('click', e => { if (e.target.classList.contains('qty-btn')) { const i = parseInt(e.target.dataset.index); const c = parseInt(e.target.dataset.change); updateCartQuantity(i, c); } });
     document.getElementById('close-modal-btn').addEventListener('click', () => document.getElementById('product-modal').style.display = 'none');
     document.getElementById('close-cart-btn').addEventListener('click', () => document.getElementById('cart-modal').style.display = 'none');
