@@ -87,7 +87,8 @@
             <textarea id="cart-notes" class="form-group" placeholder="Tulis catatan..."></textarea>
             <div class="modal-buttons">
                 <button class="btn-secondary" id="close-cart-btn">Tutup</button>
-                <button class="btn-primary" id="order-whatsapp-btn">Pesan via WhatsApp</button>
+                <button class="btn-primary" id="order-qris-btn">Bayar QRIS</button>
+                <button class="btn-primary" id="order-whatsapp-btn">Pesan WhatsApp</button>
             </div>
         </div>
     </div>
@@ -109,6 +110,19 @@
             <div class="modal-buttons">
                 <button class="btn-secondary" id="admin-form-close-btn">Batal</button>
                 <button class="btn-primary" id="admin-form-save-btn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="qris-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <h3>Pembayaran QRIS</h3>
+            <p>Silakan scan QR Code di bawah ini untuk membayar.</p>
+            <img id="qris-image" src="" alt="QRIS Code">
+            <h4>Total: <span id="qris-total">Rp 0</span></h4>
+            <p style="font-size: 0.9em; opacity: 0.8;">Setelah membayar, pesanan Anda akan langsung kami proses. Terima kasih!</p>
+            <div class="modal-buttons">
+                <button class="btn-secondary" id="close-qris-btn" style="width: 100%;">Tutup</button>
             </div>
         </div>
     </div>
