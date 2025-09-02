@@ -305,3 +305,12 @@ button:hover { opacity: 0.9; transform: translateY(-1px); }
 .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
 .modal-buttons button { flex: 1; }
 footer { text-align: center; padding: 20px 0; margin-top: 40px; color: var(--text-color); opacity: 0.8; font-size: 0.9rem; background-color: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+#qris-image {
+    max-width: 250px;
+    width: 80%;
+    display: block;
+    margin: 15px auto;
+    border-radius: 12px;
+    background-color: white;
+    padding: 10px;
+}
