@@ -3,9 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PENGATURAN APLIKASI ---
     // ===================================================================
     const CONFIG = {
-        ADMIN_PASSWORD: 'haeraniboa', 
+        ADMIN_PASSWORD: 'hyra', 
         HEADER_IMAGE_URL: 'https://i.postimg.cc/gJFgD3Gd/Whats-App-Image-2025-07-30-at-04-29-34.jpg',
         WHATSAPP_NUMBER: '6285161231424',
+        // --- PENTING: Ganti URL gambar QRIS di bawah ini dengan URL gambar QRIS Anda ---
+        QRIS_IMAGE_URL: 'https://i.postimg.cc/bybzDM86/Picsart-25-09-02-23-02-03-308.png',
         SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzhj5lsLSCvKdxeA_0YnDkDpsiUZwWLUWAY6raMqpr_1eEa8SGTh6rMETEtxiCf_xfw3Q/exec',
         ICONS: {
             admin: 'https://images.icon-icons.com/2136/PNG/96/google_admin_icon_131692.png',
@@ -116,11 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!categorySection || !topBar) return;
         
         const topBarHeight = topBar.offsetHeight;
-        // Atur posisi 'top' untuk .category-section agar pas di bawah top-bar
         categorySection.style.top = `${topBarHeight}px`;
-
-        // Dengan metode CSS baru, JavaScript tidak perlu lagi melakukan apa-apa.
-        // Cukup pastikan 'top' nya benar. CSS akan menangani sisanya.
     }
     
     function adjustCategoryAlignment() {
@@ -163,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(adjustCategoryAlignment, 0);
     }
     
-    // Sisa kode di bawah ini sama persis seperti sebelumnya...
     function renderStaticIcons() { const createImg = (url, alt) => `<img src="${url}" alt="${alt}" class="icon-img">`; document.getElementById('admin-icon-container').innerHTML = createImg(CONFIG.ICONS.admin, 'Admin'); document.getElementById('theme-toggle').innerHTML = createImg(CONFIG.ICONS.theme_light, 'Light Mode'); document.getElementById('home-btn').querySelector('.icon').innerHTML = createImg(CONFIG.ICONS.home, 'Home'); document.getElementById('cart-btn').querySelector('.icon').innerHTML = createImg(CONFIG.ICONS.cart, 'Cart'); document.getElementById('notif-btn').querySelector('.icon').innerHTML = createImg(CONFIG.ICONS.notifications, 'Notifications'); }
     function renderSkeletonLoader() { productList.innerHTML = ''; for (let i = 0; i < 6; i++) { const skeletonCard = document.createElement('div'); skeletonCard.className = 'skeleton-card'; skeletonCard.innerHTML = `<div class="skeleton-img"></div><div class="skeleton-text"></div><div class="skeleton-text" style="width: 60%;"></div>`; productList.appendChild(skeletonCard); } }
     function renderProducts(category) { productList.innerHTML = ''; const filtered = allProducts.filter(p => p.Kategori === category); if (filtered.length === 0) { productList.innerHTML = '<p style="text-align:center; grid-column: 1 / -1;">Tidak ada produk dalam kategori ini.</p>'; return; } filtered.forEach(product => { const card = document.createElement('div'); card.className = 'product-card'; const productId = `${product.Nama}-${product.Kategori}`.replace(/\s+/g, '-'); card.dataset.productId = productId; card.innerHTML = `<img src="${product.Gambar}" alt="${product.Nama}" loading="lazy"><div class="info"><h3>${product.Nama}</h3><div class="price-container"><p>Rp ${Number(product.Harga).toLocaleString('id-ID')}</p><button class="add-to-cart-icon-btn" data-product-id="${productId}">+</button></div></div>`; card.addEventListener('click', (e) => { if (e.target.matches('.add-to-cart-icon-btn')) return; const hasVariations = product.Variasi && String(product.Variasi).split(',').filter(v => v.trim() !== '').length > 0; if (hasVariations) { openProductModal(product); } else { addProductToCart(product); triggerFlyToCartAnimation(card.querySelector('img')); } }); productList.appendChild(card); }); }
@@ -173,10 +170,55 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCartUI() { const badge = document.getElementById('cart-badge'); const list = document.getElementById('cart-items-list'); const totalEl = document.getElementById('cart-total'); const totalItems = cart.reduce((s, i) => s + i.qty, 0); let totalAmount = 0; badge.textContent = totalItems; if (totalItems > 0) { badge.classList.add('active'); } else { badge.classList.remove('active'); } list.innerHTML = ''; if (cart.length === 0) { list.innerHTML = '<p>Keranjang kosong.</p>'; } else { cart.forEach((item, index) => { totalAmount += item.harga * item.qty; list.innerHTML += `<div class="cart-item" style="display:flex;align-items:center;margin-bottom:15px;"><img src="${item.gambar}" style="width:60px;height:60px;border-radius:8px;object-fit:cover" alt="${item.nama}"><div style="flex-grow:1;margin-left:10px;"><strong>${item.nama}</strong> ${item.variasi ? `(${item.variasi})` : ''}<br><small>Rp ${item.harga.toLocaleString('id-ID')}</small></div><div style="display:flex;align-items:center;"><button class="qty-btn" data-index="${index}" data-change="-1">-</button><input value="${item.qty}" style="width:40px;text-align:center" readonly><button class="qty-btn" data-index="${index}" data-change="1">+</button></div></div>`; }); } totalEl.textContent = `Rp ${totalAmount.toLocaleString('id-ID')}`; }
     function updateCartQuantity(i, c) { if (cart[i]) { cart[i].qty += c; if (cart[i].qty <= 0) { cart.splice(i, 1); } updateCartUI(); } }
     function sendOrder() { if (cart.length === 0) return; const t = cart.reduce((s, i) => s + i.harga * i.qty, 0); const n = document.getElementById('cart-notes').value; let m = `Hallo Dapur Doa Umi x Risoles Hyra, Saya Mau Pesan:\n\n`; cart.forEach(i => { m += `*${i.nama}* ${i.variasi ? `(${i.variasi})` : ''}\n- Jumlah: ${i.qty} x Rp ${i.harga.toLocaleString('id-ID')}\n\n`; }); m += `*Total Pembayaran: Rp ${t.toLocaleString('id-ID')}*\n`; if (n) m += `*Catatan:* ${n}`; const u = `https://api.whatsapp.com/send?phone=${CONFIG.WHATSAPP_NUMBER}&text=${encodeURIComponent(m)}`; window.open(u, '_blank'); const d = { items: [...cart], catatan: n }; cart = []; document.getElementById('cart-notes').value = ''; updateCartUI(); document.getElementById('cart-modal').style.display = 'none'; fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'saveTransaction', data: d }) }); }
+    
+    // --- FUNGSI YANG DIPERBARUI ---
+    function showQrisModal() {
+        if (cart.length === 0) return;
+
+        const totalAmount = cart.reduce((sum, item) => sum + item.harga * item.qty, 0);
+        const originalNotes = document.getElementById('cart-notes').value;
+
+        // 1. Buat catatan khusus untuk spreadsheet
+        const spreadsheetNotes = `Pembayaran via QRIS. Catatan Pembeli: ${originalNotes || '-'}`;
+
+        // 2. Siapkan pesan WhatsApp untuk notifikasi ke penjual
+        let waMessage = `🔔 *Notifikasi Pesanan Baru (via QRIS)* 🔔\n\nPelanggan telah membuat pesanan untuk dibayar dengan QRIS:\n\n`;
+        cart.forEach(item => {
+            waMessage += `*${item.nama}* ${item.variasi ? `(${item.variasi})` : ''}\n- Jumlah: ${item.qty} x Rp ${item.harga.toLocaleString('id-ID')}\n\n`;
+        });
+        waMessage += `*Total Pembayaran: Rp ${totalAmount.toLocaleString('id-ID')}*\n`;
+        if (originalNotes) {
+            waMessage += `*Catatan Pelanggan:* ${originalNotes}`;
+        }
+        const waUrl = `https://api.whatsapp.com/send?phone=${CONFIG.WHATSAPP_NUMBER}&text=${encodeURIComponent(waMessage)}`;
+
+        // 3. Kirim notifikasi WhatsApp di latar belakang
+        window.open(waUrl, '_blank');
+
+        // 4. Tampilkan modal QRIS kepada pelanggan
+        document.getElementById('qris-image').src = CONFIG.QRIS_IMAGE_URL;
+        document.getElementById('qris-total').textContent = `Rp ${totalAmount.toLocaleString('id-ID')}`;
+        document.getElementById('qris-modal').style.display = 'flex';
+        
+        // 5. Kirim data ke spreadsheet dengan catatan yang sudah dimodifikasi
+        const transactionData = { items: [...cart], catatan: spreadsheetNotes };
+        fetch(CONFIG.SCRIPT_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ action: 'saveTransaction', data: transactionData }) 
+        });
+
+        // 6. Kosongkan keranjang dan tutup modal keranjang
+        cart = [];
+        document.getElementById('cart-notes').value = '';
+        updateCartUI();
+        document.getElementById('cart-modal').style.display = 'none';
+    }
+    // --- AKHIR FUNGSI YANG DIPERBARUI ---
+
     function addProductToCart(product) { if (!product) return; const existingItem = cart.find(item => item.nama === product.Nama && !item.variasi); if (existingItem) { existingItem.qty++; } else { cart.push({ nama: product.Nama, harga: Number(product.Harga), gambar: product.Gambar, kategori: product.Kategori, variasi: '', qty: 1 }); } updateCartUI(); }
     function triggerFlyToCartAnimation(startElement) { const cartBtn = document.getElementById('cart-btn'); const endRect = cartBtn.getBoundingClientRect(); const startRect = startElement.getBoundingClientRect(); const flyEl = document.createElement('div'); flyEl.className = 'fly-to-cart-element'; document.body.appendChild(flyEl); flyEl.style.left = `${startRect.left + startRect.width / 2}px`; flyEl.style.top = `${startRect.top + startRect.height / 2}px`; const endX = endRect.left + endRect.width / 2 - startRect.left - startRect.width / 2; const endY = endRect.top + endRect.height / 2 - startRect.top - startRect.height / 2; flyEl.style.setProperty('--cart-end-x', `${endX}px`); flyEl.style.setProperty('--cart-end-y', `${endY}px`); flyEl.addEventListener('animationend', () => { flyEl.remove(); }); }
     function setupNotificationSlider() { if (!notifications || notifications.length === 0) { document.getElementById('notification-bar').style.display = 'none'; return; } const bar = document.getElementById('notification-bar'); const slider = document.getElementById('notification-slider'); const counter = document.getElementById('notif-counter'); const controls = document.getElementById('notif-controls'); const prevBtn = document.getElementById('notif-prev'); const nextBtn = document.getElementById('notif-next'); slider.innerHTML = ''; notifications.forEach(notif => { const slide = document.createElement('div'); slide.className = 'notification-slide'; slide.innerHTML = `<div class="notification-content-wrapper"><h4>${notif.Judul}</h4><p>${notif.Isi}</p></div>`; slider.appendChild(slide); }); let currentNotifIndex = 0; if (notifications.length > 1) { counter.style.display = 'block'; controls.style.display = 'flex'; } else { counter.style.display = 'none'; controls.style.display = 'none'; } nextBtn.addEventListener('click', () => { currentNotifIndex = (currentNotifIndex + 1) % notifications.length; showNotification(currentNotifIndex); }); prevBtn.addEventListener('click', () => { currentNotifIndex = (currentNotifIndex - 1 + notifications.length) % notifications.length; showNotification(currentNotifIndex); }); showNotification(0); }
-    function showNotification(index) { const bar = document.getElementById('notification-bar'); const slider = document.getElementById('notification-slider'); const counter = document.getElementById('notif-counter'); if (notifications.length === 0) return; const offset = -index * 100; slider.style.transform = `translateX(${offset}%)`; if (notifications.length > 1) { counter.textContent = `${index + 1}/${notifications.length}`; } bar.style.display = 'block'; setTimeout(() => bar.classList.add('visible'), 50); clearTimeout(notifTimeout); notifTimeout = setTimeout(() => { const nextIndex = index + 1; if (nextIndex < notifications.length) { showNotification(nextIndex); } else { bar.classList.remove('visible'); setTimeout(() => bar.style.display = 'none', 500); } }, 5000); }
+    function showNotification(index) { const bar = document.getElementById('notification-bar'); const slider = document.getElementById('notification-slider'); const counter = document.getElementById('notif-counter'); if (notifications.length === 0) return; const offset = -index * 100; slider.style.transform = `translateX(${offset}%)`; if (notifications.length > 1) { counter.textContent = `${index + 1}/${notifications.length}`; } bar.style.display = 'block'; setTimeout(() => bar.classList.add('visible'), 50); clearTimeout(notifTimeout); notifTimeout = setTimeout(() => { const nextIndex = index + 1; if (nextIndex < notifications.length) { showNotification(nextIndex); } else { bar.classList.remove('visible'); setTimeout(() => bar.style.display = 'none', 500); } }, 20000); }
     const adminFormModal = document.getElementById('admin-form-modal');
     async function showAdminPanel() { const p = prompt("Masukkan kata sandi admin:"); if (p === CONFIG.ADMIN_PASSWORD) { mainContent.style.display = 'none'; adminPage.style.display = 'block'; adminPage.innerHTML = '<h2>Memuat...</h2>'; try { const h = await fetch(`${CONFIG.SCRIPT_URL}?action=getHistory`); allHistory = await h.json(); renderAdminPage(); } catch (e) { adminPage.innerHTML = '<h2>Gagal memuat riwayat.</h2>'; } } else if (p !== null) { alert("Kata sandi salah!"); } }
     function renderAdminPage() { const a = adminPage; a.innerHTML = `<h1>Panel Admin</h1><div id="admin-tabs"><div class="admin-tab active" data-tab="transaksi">Pesanan Baru</div><div class="admin-tab" data-tab="pesanan">Selesai & Batal</div><div class="admin-tab" data-tab="produk">Produk</div><div class="admin-tab" data-tab="notifikasi">Notifikasi</div></div><div id="admin-content" style="min-height:300px;"><div id="tab-transaksi" class="admin-tab-content active"></div><div id="tab-pesanan" class="admin-tab-content"></div><div id="tab-produk" class="admin-tab-content"></div><div id="tab-notifikasi" class="admin-tab-content"></div></div><button class="btn-secondary" id="exit-admin-btn" style="margin-top:20px;">Kembali</button>`; renderAdminOrders(); renderAdminProducts(); renderAdminNotifications(); a.querySelectorAll('.admin-tab').forEach(t => t.addEventListener('click', e => { a.querySelectorAll('.admin-tab, .admin-tab-content').forEach(el => el.classList.remove('active')); e.target.classList.add('active'); a.querySelector(`#tab-${e.target.dataset.tab}`).classList.add('active'); })); document.getElementById('exit-admin-btn').addEventListener('click', () => { mainContent.style.display = 'block'; a.style.display = 'none'; initializeFromCache(); }); }
@@ -200,11 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('notif-btn').addEventListener('click', () => { document.getElementById('notification-content').innerHTML = notifications.length > 0 ? notifications.map(n => `<h3>${n.Judul}</h3><p>${n.Isi}</p><hr>`).join('') : '<p>Tidak ada info.</p>'; document.getElementById('notification-modal').style.display = 'flex' });
     document.getElementById('add-to-cart-btn').addEventListener('click', handleAddToCart);
     document.getElementById('order-whatsapp-btn').addEventListener('click', sendOrder);
+    document.getElementById('order-qris-btn').addEventListener('click', showQrisModal);
     document.getElementById('cart-items-list').addEventListener('click', e => { if (e.target.classList.contains('qty-btn')) { const i = parseInt(e.target.dataset.index); const c = parseInt(e.target.dataset.change); updateCartQuantity(i, c); } });
     document.getElementById('close-modal-btn').addEventListener('click', () => document.getElementById('product-modal').style.display = 'none');
     document.getElementById('close-cart-btn').addEventListener('click', () => document.getElementById('cart-modal').style.display = 'none');
     document.getElementById('close-notif-btn').addEventListener('click', () => document.getElementById('notification-modal').style.display = 'none');
     document.getElementById('admin-form-close-btn').addEventListener('click', () => document.getElementById('admin-form-modal').style.display = 'none');
+    document.getElementById('close-qris-btn').addEventListener('click', () => document.getElementById('qris-modal').style.display = 'none');
     productList.addEventListener('click', (e) => {
         if (e.target.matches('.add-to-cart-icon-btn')) {
             e.stopPropagation();
