@@ -314,3 +314,11 @@ footer { text-align: center; padding: 20px 0; margin-top: 40px; color: var(--tex
     background-color: white;
     padding: 10px;
 }
+/* Perbaikan untuk klik di modal pada mobile */
+.modal {
+    pointer-events: none;
+}
+
+.modal-content {
+    pointer-events: auto;
+}
